@@ -4,6 +4,7 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient()
 const { validate } = require('./schema/validate');
 const { userSchema } = require('./schema/user.schema');
+const cors = require('cors');
 const multer = require('multer');
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
@@ -18,9 +19,14 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage })
 const app = express();
 app.use(express.json());
+app.use(cors());
 const PORT = 3000;
 
 app.use(bodyParser.urlencoded({ extended: true }))
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).json({ success: false, errorMessage: "Internal Server Error" });
+});
 
 app.post("/createUser", upload.single('profilePic'), validate(userSchema), async (req, res) => {
     try {
